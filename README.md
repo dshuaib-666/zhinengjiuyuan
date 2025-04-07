@@ -30,6 +30,43 @@
  目前只能做到将x，y分别存放到不同的x，y数组，然后小车会'直线'(水平不足，非曲线)前往该地点，当距离该点在一定范围内，则进入下个点的前进<br>
  3.能够使用的NRF2041从机代码以及与搭载该模块的遥控器通信的主机代码<br>
  4.HAL库配置的 空闲中断 HWT101通信代码，以及jy901s通信代码<br>
+
+ *代码详细*<br>
+ 1.
+ 
+``` 
+ void X_AND_Y_GET(float *x, float *y)
+{
+    float sa1_real, sa2_real;
+   
+    sa_angle = pi * HWT101.angle / 180.0f;
+
+    READ_SPEED();
+
+    sa1_real = location.speed_l_now * 6.5f * pi / 4680.0f;
+    sa2_real =  location.speed_R_now * 6.5f * pi / 4680.0f;
+
+    location.y += (cos(sa_angle) * sa1_real + cos(sa_angle) * sa2_real) / 2.0f;//基本定位
+    location.x += (-sin(sa_angle) * sa1_real - sin(sa_angle) * sa2_real) / 2.0f;
+//以下的是作为相对为位置读取
+	location.y_relative= location.y-location.y_record;
+	location.x_relative= location.x-location.x_record;
+	
+	location.safe_x_relative=location.safe_x- location.safe_x_Record;
+	location.safe_y_relative=location.safe_y- location.safe_y_Record;
+	//得到了每一次的定点的相对位置
+	location.safe_x_one_relative=location.safe_x_one-location.safe_x_one_Record;
+	location.safe_y_one_relative=location.safe_y_one- location.safe_y_one_Record;
+	location.safe_x_two_relative=location.safe_x_two- location.safe_x_two_Record;
+	location.safe_y_two_relative=location.safe_y_two- location.safe_y_two_Record;
+	
+	
+    *x = (float)location.x;
+    *y = (float)location.y;
+}
+
+```
+
  
 
  
