@@ -42,17 +42,20 @@
  void X_AND_Y_GET(float *x, float *y)
 {
     float sa1_real, sa2_real;
-   
+   //这里输入当前航向角，进行转化为度数
     sa_angle = pi * HWT101.angle / 180.0f;
-
+	//读编码器值
     READ_SPEED();
-
+	算左轮，右轮各自的值
     sa1_real = location.speed_l_now * 6.5f * pi / 4680.0f;//6.5为轮子直径6.5cm，4680是轮子转一圈的总脉冲数，
     sa2_real =  location.speed_R_now * 6.5f * pi / 4680.0f;
-
+	//这里左右两轮只是相加起来除于2，也就是默认，小车坐标中心为左右轮之间
+	//而角度计算 x/y各自的位移，
     location.y += (cos(sa_angle) * sa1_real + cos(sa_angle) * sa2_real) / 2.0f;//基本定位
     location.x += (-sin(sa_angle) * sa1_real - sin(sa_angle) * sa2_real) / 2.0f;
-//以下的是作为相对为位置读取
+	这里的location.x/ location.y就是绝对坐标系x y 值
+	
+	//以下的是作为相对为位置读取，下面是相对坐标系的，减去一个坐标
 	location.y_relative= location.y-location.y_record;
 	location.x_relative= location.x-location.x_record;
 	
@@ -64,11 +67,13 @@
 	location.safe_x_two_relative=location.safe_x_two- location.safe_x_two_Record;
 	location.safe_y_two_relative=location.safe_y_two- location.safe_y_two_Record;
 	
-	
+	//输出绝对坐标
     *x = (float)location.x;
     *y = (float)location.y;
 }
-
+//输入当前（x，y坐标） 目标（x，y）坐标，以及速度
+//这个函数的基础是，360读无死角的 直线行驶straight_line(motor + sa_L / 10, motor + sa_L / 10, sa_yaw4, &sa_20, &sa_21);//将计算后的角度导入到速度环串偏航环的运动中，sa_yaw4是接下来要前往的偏航角度，范围为-180 - 180
+//直线行驶指的是 pid调直线 360度无死角指的是，180到-180的界限有处理不会由于+ - 号的变化影响
 void Location_GO_EYSE(float expect_x, float expect_y, float current_x, float current_y,int motor) // 输入目标位置xy，输入当前位置，
 {
     sa_dx = current_x - expect_x;
@@ -94,7 +99,7 @@ void Location_GO_EYSE(float expect_x, float expect_y, float current_x, float cur
         Motor_370_respectively(0, 0);
     }
 }
-
+//有上一步的 输入目标坐标，当前坐标的函数 ， 接下来封装成，只需要输入目标绝对坐标就能去的函数
 int location_goto_point(float target_x, float target_y,int option,int motor)//输入目标位置，
 {
     //static int car_y = 4.0f; // 灏忚溅 y 鏂瑰悜鍋忕Щ
@@ -129,6 +134,7 @@ int location_goto_point(float target_x, float target_y,int option,int motor)//�
 	
 	
 }
+//进一步封装为，直接存放在一个数组内， 轨迹
 float g_location_x_new_return[100] = { 57.0f,  80.0f,   80.0f,  78.0f, 78.0f};     
 float g_location_y_new_return[100] = { -40.0f, -140.0f, -190.f,140.0f, 140.0f};    
                                                                              
